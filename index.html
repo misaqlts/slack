@@ -263,10 +263,10 @@
             bindWebhook(webhookURLData[selected])
           });
         const cacheData = getAllWebhookURL();
-        if (cacheData) {
+        if (cacheData && cacheData.data) {
           renderWebhookURLs(cacheData.data);
           document.getElementById("webhookUrlSelector").value = cacheData.selected;
-          bindWebhook(webhookURLData[selected]);
+          bindWebhook(cacheData.data[selected]);
         }
       })();
     </script>
