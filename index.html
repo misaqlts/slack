@@ -217,22 +217,25 @@
           return;
         }
         document.getElementById("result").innerText = "Đang gửi...";
-        fetch(webhookURL, {
+        fetch(window.__proxyUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            channel: webhookChannel,
-            attachments: [
-              {
-                color: "#36a64f",
-                title: "*"+ title +"*",  // Tiêu đề với định dạng đậm
-                text: message, // "_Test push message._\n• Dòng thứ nhất\n• Dòng thứ hai",
-                mrkdwn_in: ["text", "title"] // Kích hoạt markdown cho title và text
-              }
-            ]
-            // text: message
+            url: webhookURL,
+            data: {
+              channel: webhookChannel,
+              attachments: [
+                {
+                  color: "#36a64f",
+                  title: "*"+ title +"*",  // Tiêu đề với định dạng đậm
+                  text: message, // "_Test push message._\n• Dòng thứ nhất\n• Dòng thứ hai",
+                  mrkdwn_in: ["text", "title"] // Kích hoạt markdown cho title và text
+                }
+              ]
+              // text: message
+            }
           }),
         })
         .then(response => {
@@ -248,6 +251,7 @@
         });
       }
       (function () {
+        window.__proxyUrl = 'https://script.google.com/macros/s/AKfycbyUzgc59whLNi0vcbmIu_aQAOeTF_u-buNPA_fPrSbobz-1cVNVjda7EBYok4bqRRhcWQ/exec';
         function bindWebhook(key, data) {
           !data && (data = {});
           document.getElementById("webhookName").value = key || '';
