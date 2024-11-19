@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Slack - Push message</title>
+    <style>
+      :root {
+        --color-text: #2a2a2a;
+        --color-primary: #007bff;
+        --color-primary-hover: #3d95f4;
+        --color-primary-active: #0268cf;
+        --color-primary-text: #fff;
+        --color-primary-outline: #007bff88;
+        --color-secondary: #eeeeee;
+        --color-secondary-hover: #f1f1f1;
+        --color-secondary-active: #e1e1e1;
+      }
+      body {
+        margin: 0;
+        font-size: 16px;
+        color: var(--color-text);
+      }
+      * {
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      .form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px;
+        max-width: 640px;
+      }
+
+      .form label {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form input[type="text"] {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        outline-color: var(--color-primary-outline);
+      }
+
+      .form input[type="checkbox"] {
+        margin-right: 8px;
+        outline: none;
+        outline: none;
+      }
+
+      .form textarea {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        resize: none;
+        height: 100px;
+        outline-color: var(--color-primary-outline);
+      }
+
+      .form select {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        outline-color: var(--color-primary-outline);
+      }
+
+      .form input[type="text"]:focus,
+      .for select:focus,
+      .for select:focus-within,
+      .form textarea:focus {
+        border-color: var(--color-primary);
+      }
+
+      .btn {
+        padding: 8px 16px;
+        background-color: var(--color-primary);
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        outline-color: var(--color-primary-outline);
+        min-width: fit-content;
+        transition: all 0.15s;
+      }
+
+      .btn:hover {
+        background-color: var(--color-primary-hover);
+      }
+
+      .btn:active {
+        background-color: var(--color-primary-active);
+      }
+
+      .btn.btn-secondary {
+        background-color: #eeeeee;
+        color: var(--color-text);
+      }
+
+      .btn.btn-secondary:hover {
+        background-color: #f1f1f1;
+      }
+
+      .btn.btn-secondary:active {
+        background-color: #e1e1e1;
+      }
+
+      #result {
+        padding: 12px;
+        border-radius: 4px;
+        margin-top: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="form">
+      <label>
+        <span>Webhook URL</span>
+        <div style="display: flex; gap: 8px">
+          <select id="webhookUrlSelector" style="flex: 1"></select>
+          <input
+            type="text"
+            id="webhookName"
+            name="webhookName"
+            placeholder="Tên Webhook"
+            style="flex: 1; min-width: 40px"
+          />
+          <input
+            type="text"
+            id="webhookChannel"
+            name="webhookChannel"
+            placeholder="Tên Chanel"
+            style="flex: 1; min-width: 40px"
+          />
+          <input
+            type="text"
+            id="webhookURL"
+            name="webhookURL"
+            placeholder="Webhook URL"
+            style="flex: 3; min-width: 80px"
+          />
+          <button class="btn btn-secondary" onclick="saveWebhookURL()">
+            Lưu
+          </button>
+        </div>
+      </label>
+      <label>
+        <span>Title</span>
+        <input type="text" id="title" name="title" value="QLTS Team"/>
+      </label>
+      <label>
+        <span>Message</span>
+        <textarea id="message" name="message"></textarea>
+      </label>
+      <button class="btn" onclick="sendMessage()">Gửi</button>
+      <div id="result"></div>
+    </div>
+    <script>
+      function getAllWebhookURL() {
+        try {
+          const jsonData = localStorage.getItem("webhookURL");
+          if (jsonData) {
+            return JSON.parse(jsonData);
+          }
+        } catch (error) {
+          console.error(error);
+          return {
+            selected: null,
+            data: {},
+          };
+        }
+      }
+      function renderWebhookURLs(webhookURLs) {
+        document.getElementById("webhookUrlSelector").innerHTML = "";
+        Object.keys(webhookURLs).forEach((key) => {
+          const option = document.createElement("option");
+          option.value = key;
+          option.innerText = key;
+          document.getElementById("webhookUrlSelector").appendChild(option);
+        });
+      }
+      function saveWebhookURL() {
+        const webhookName = document.getElementById("webhookName").value;
+        const webhookURL = document.getElementById("webhookURL").value;
+        const webhookChannel = document.getElementById("webhookChannel").value;
+        if (!webhookURL || !webhookName || !webhookChannel) {
+          alert("Vui lòng nhập tên, channel và webhook URL");
+          return;
+        }
+
+        const cacheData = getAllWebhookURL();
+        const webhookURLData =
+          cacheData && cacheData.data ? cacheData.data : {};
+        webhookURLData[webhookName] = {
+          url: webhookURL,
+          channel: document.getElementById("webhookChannel").value || ''
+        };
+        localStorage.setItem(
+          "webhookURL",
+          JSON.stringify({
+            selected: webhookName,
+            data: webhookURLData,
+          })
+        );
+        renderWebhookURLs(webhookURLData);
+        document.getElementById("webhookUrlSelector").value = webhookName;
+      }
+      function sendMessage() {
+        const webhookURL = document.getElementById("webhookURL").value;
+        const title = document.getElementById("title").value;
+        const message = document.getElementById("message").value;
+        const webhookChannel = document.getElementById("webhookChannel").value;
+        if (!webhookURL || !message || !webhookChannel || !title) {
+          alert("Vui lòng nhập channel, webhook URL, title và message");
+          return;
+        }
+        document.getElementById("result").innerText = "Đang gửi...";
+        fetch(webhookURL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            channel: webhookChannel,
+            attachments: [
+              {
+                color: "#36a64f",
+                title: "*"+ title +"*",  // Tiêu đề với định dạng đậm
+                text: message, // "_Test push message._\n• Dòng thứ nhất\n• Dòng thứ hai",
+                mrkdwn_in: ["text", "title"] // Kích hoạt markdown cho title và text
+              }
+            ]
+            // text: message
+          }),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to send message: ' + response);
+            }
+            console.log('Message sent successfully');
+            document.getElementById("result").innerText = 'Message sent successfully'
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById("result").innerText = JSON.stringify(error);
+        });
+      }
+      (function () {
+        document
+          .getElementById("webhookUrlSelector")
+          .addEventListener("change", (event) => {
+            const cacheData = getAllWebhookURL();
+            const webhookURLData = cacheData && cacheData.data ? cacheData.data : {};
+            const selected = event.target.value;
+            const webhook = webhookURLData[selected] || {};
+            document.getElementById("webhookName").value = selected;
+            document.getElementById("webhookChannel").value = webhook.channel || '';
+            document.getElementById("webhookURL").value = webhook.url || '';
+          });
+        const cacheData = getAllWebhookURL();
+        if (cacheData) {
+          renderWebhookURLs(cacheData.data);
+          document.getElementById("webhookUrlSelector").value =
+            cacheData.selected;
+        }
+      })();
+    </script>
+  </body>
+</html>
