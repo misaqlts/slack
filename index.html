@@ -15,6 +15,8 @@
         --color-secondary: #eeeeee;
         --color-secondary-hover: #f1f1f1;
         --color-secondary-active: #e1e1e1;
+        --color-danger: #e11f1f;
+        --color-danger-outline: #bc1a1a88;
       }
       body {
         margin: 0;
@@ -23,7 +25,7 @@
       }
       * {
         box-sizing: border-box;
-        font-family: Arial, Helvetica, sans-serif;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       }
       .form {
         display: flex;
@@ -36,13 +38,13 @@
       .form label {
         display: flex;
         flex-direction: column;
+        gap: 4px;
       }
 
       .form input[type="text"] {
         padding: 8px;
         border: 1px solid #ccc;
         border-radius: 4px;
-        outline-color: var(--color-primary-outline);
       }
 
       .form input[type="checkbox"] {
@@ -57,17 +59,28 @@
         border-radius: 4px;
         resize: none;
         height: 100px;
-        outline-color: var(--color-primary-outline);
       }
 
       .form select {
         padding: 8px;
         border: 1px solid #ccc;
         border-radius: 4px;
+      }
+
+      .form input,
+      .form select,
+      .form textarea {
         outline-color: var(--color-primary-outline);
       }
 
-      .form input[type="text"]:focus,
+      .form.submitted input:invalid,
+      .form.submitted select:invalid,
+      .form.submitted textarea:invalid {
+        outline-color: var(--color-danger-outline);
+        border-color: var(--color-danger) !important;
+      }
+
+      .form input:focus,
       .for select:focus,
       .for select:focus-within,
       .form textarea:focus {
@@ -84,6 +97,7 @@
         outline-color: var(--color-primary-outline);
         min-width: fit-content;
         transition: all 0.15s;
+        font-weight: 500;
       }
 
       .btn:hover {
@@ -108,31 +122,31 @@
       }
 
       #result {
-        padding: 12px;
+        padding: 12px 0;
         border-radius: 4px;
-        margin-top: 12px;
       }
     </style>
   </head>
   <body>
-    <div class="form">
+    <form id="myForm" class="form">
       <label>
-        <span>Webhook URL</span>
+        <span>Webhook</span>
         <div style="display: flex; gap: 8px">
           <select id="webhookUrlSelector" style="flex: 1"></select>
-          <input
+          <!-- <input
             type="text"
             id="webhookName"
             name="webhookName"
             placeholder="Tên Webhook"
             style="flex: 1; min-width: 40px"
-          />
+          /> -->
           <input
             type="text"
             id="webhookChannel"
             name="webhookChannel"
             placeholder="Tên Chanel"
             style="flex: 1; min-width: 40px"
+            required
           />
           <input
             type="text"
@@ -140,6 +154,7 @@
             name="webhookURL"
             placeholder="Webhook URL"
             style="flex: 3; min-width: 80px"
+            required
           />
           <button class="btn btn-secondary" onclick="saveWebhookURL()">
             Lưu
@@ -148,19 +163,19 @@
       </label>
       <label>
         <span>Title</span>
-        <input type="text" id="title" name="title" value="QLTS Team"/>
+        <input type="text" id="title" name="title" placeholder="Nhập tiêu đề..." value="QLTS Team" required/>
       </label>
       <label>
         <span>Message</span>
-        <textarea id="message" name="message"></textarea>
+        <textarea id="message" name="message" placeholder="Nhập nội dung..." required></textarea>
       </label>
       <button class="btn" onclick="sendMessage()">Gửi</button>
       <div id="result"></div>
-    </div>
+    </form>
     <script>
       function getAllWebhookURL() {
         try {
-          const jsonData = localStorage.getItem("webhookURL");
+          const jsonData = localStorage.getItem(window.__cacheKey);
           if (jsonData) {
             return JSON.parse(jsonData);
           }
@@ -182,11 +197,11 @@
         });
       }
       function saveWebhookURL() {
-        const webhookName = document.getElementById("webhookName").value;
-        const webhookURL = document.getElementById("webhookURL").value;
         const webhookChannel = document.getElementById("webhookChannel").value;
+        const webhookName = webhookChannel; // document.getElementById("webhookName").value;
+        const webhookURL = document.getElementById("webhookURL").value;
         if (!webhookURL || !webhookName || !webhookChannel) {
-          alert("Vui lòng nhập tên, channel và webhook URL");
+          alert("Vui lòng nhập channel và webhook URL");
           return;
         }
 
@@ -195,10 +210,10 @@
           cacheData && cacheData.data ? cacheData.data : {};
         webhookURLData[webhookName] = {
           url: webhookURL,
-          channel: document.getElementById("webhookChannel").value || ''
+          channel: webhookChannel
         };
         localStorage.setItem(
-          "webhookURL",
+          window.__cacheKey,
           JSON.stringify({
             selected: webhookName,
             data: webhookURLData,
@@ -207,7 +222,15 @@
         renderWebhookURLs(webhookURLData);
         document.getElementById("webhookUrlSelector").value = webhookName;
       }
+      let sending = false;
       function sendMessage() {
+        if (sending) {
+          return;
+        }
+        document.forms.myForm.classList.add('submitted');
+        if (!document.forms.myForm.checkValidity()) {
+          return;
+        }
         const webhookURL = document.getElementById("webhookURL").value;
         const title = document.getElementById("title").value;
         const message = document.getElementById("message").value;
@@ -217,27 +240,24 @@
           return;
         }
         document.getElementById("result").innerText = "Đang gửi...";
-        fetch(window.__proxyUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
+        sending = true;
+        const data = JSON.stringify({
             url: webhookURL,
-            data: {
+            payload: {
               channel: webhookChannel,
               attachments: [
                 {
                   color: "#36a64f",
-                  title: "*"+ title +"*",  // Tiêu đề với định dạng đậm
+                  title: title,  // Tiêu đề với định dạng đậm
                   text: message, // "_Test push message._\n• Dòng thứ nhất\n• Dòng thứ hai",
                   mrkdwn_in: ["text", "title"] // Kích hoạt markdown cho title và text
                 }
               ]
               // text: message
             }
-          }),
-        })
+          });
+        const version = new Date().getTime();
+        fetch(`${window.__proxyUrl}?v=${version}&data=${btoa(data)}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to send message: ' + response);
@@ -247,14 +267,19 @@
         })
         .catch(error => {
             console.error('Error:', error);
-            document.getElementById("result").innerText = JSON.stringify(error);
+            document.getElementById("result").innerText = 'Error: ' + error;
+        })
+        .finally(() => {
+          sending = false;
         });
       }
       (function () {
-        window.__proxyUrl = 'https://script.google.com/macros/s/AKfycbyUzgc59whLNi0vcbmIu_aQAOeTF_u-buNPA_fPrSbobz-1cVNVjda7EBYok4bqRRhcWQ/exec';
+        window.__proxyUrl = 'https://script.google.com/macros/s/AKfycbxMW5tCpMPGmzP2ycbuJv3jp6MS_-Qjh8psKAmzJBzgO8HP7BqTOBS7qDEauMiivWr4Hw/exec';
+        window.__cacheKey = 'webhookURL';
+        location.search.includes('flush')  && localStorage.removeItem(window.__cacheKey);
         function bindWebhook(key, data) {
           !data && (data = {});
-          document.getElementById("webhookName").value = key || '';
+          // document.getElementById("webhookName").value = key || '';
           document.getElementById("webhookChannel").value = data.channel || '';
           document.getElementById("webhookURL").value = data.url || '';
         };
