@@ -248,22 +248,25 @@
         });
       }
       (function () {
+        function bindWebhook(key, data) {
+          !data && (data = {});
+          document.getElementById("webhookName").value = key;
+          document.getElementById("webhookChannel").value = data.channel || '';
+          document.getElementById("webhookURL").value = data.url || '';
+        };
         document
           .getElementById("webhookUrlSelector")
           .addEventListener("change", (event) => {
             const cacheData = getAllWebhookURL();
             const webhookURLData = cacheData && cacheData.data ? cacheData.data : {};
             const selected = event.target.value;
-            const webhook = webhookURLData[selected] || {};
-            document.getElementById("webhookName").value = selected;
-            document.getElementById("webhookChannel").value = webhook.channel || '';
-            document.getElementById("webhookURL").value = webhook.url || '';
+            bindWebhook(webhookURLData[selected])
           });
         const cacheData = getAllWebhookURL();
         if (cacheData) {
           renderWebhookURLs(cacheData.data);
-          document.getElementById("webhookUrlSelector").value =
-            cacheData.selected;
+          document.getElementById("webhookUrlSelector").value = cacheData.selected;
+          bindWebhook(webhookURLData[selected]);
         }
       })();
     </script>
