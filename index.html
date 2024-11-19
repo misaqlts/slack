@@ -266,7 +266,7 @@
         if (cacheData && cacheData.data) {
           renderWebhookURLs(cacheData.data);
           document.getElementById("webhookUrlSelector").value = cacheData.selected;
-          bindWebhook(cacheData.data[selected]);
+          cacheData.selected && bindWebhook(cacheData.data[cacheData.selected]);
         }
       })();
     </script>
