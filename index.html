@@ -250,7 +250,7 @@
       (function () {
         function bindWebhook(key, data) {
           !data && (data = {});
-          document.getElementById("webhookName").value = key;
+          document.getElementById("webhookName").value = key || '';
           document.getElementById("webhookChannel").value = data.channel || '';
           document.getElementById("webhookURL").value = data.url || '';
         };
@@ -260,13 +260,13 @@
             const cacheData = getAllWebhookURL();
             const webhookURLData = cacheData && cacheData.data ? cacheData.data : {};
             const selected = event.target.value;
-            bindWebhook(webhookURLData[selected])
+            bindWebhook(selected, webhookURLData[selected])
           });
         const cacheData = getAllWebhookURL();
         if (cacheData && cacheData.data) {
           renderWebhookURLs(cacheData.data);
           document.getElementById("webhookUrlSelector").value = cacheData.selected;
-          cacheData.selected && bindWebhook(cacheData.data[cacheData.selected]);
+          bindWebhook(cacheData.selected, cacheData.data[cacheData.selected]);
         }
       })();
     </script>
