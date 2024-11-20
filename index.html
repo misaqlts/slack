@@ -128,7 +128,7 @@
     </style>
   </head>
   <body>
-    <form id="myForm" class="form">
+    <form id="myForm" class="form" onsubmit="return noop(event)">
       <label>
         <span>Webhook</span>
         <div style="display: flex; gap: 8px">
@@ -173,6 +173,7 @@
       <div id="result"></div>
     </form>
     <script>
+      function noop(event) {event.preventDefault();};
       function getAllWebhookURL() {
         try {
           const jsonData = localStorage.getItem(window.__cacheKey);
