@@ -246,14 +246,30 @@
             url: webhookURL,
             payload: {
               channel: webhookChannel,
-              attachments: [
-                {
-                  color: "#36a64f",
-                  title: title,  // Tiêu đề với định dạng đậm
-                  text: message, // "_Test push message._\n• Dòng thứ nhất\n• Dòng thứ hai",
-                  mrkdwn_in: ["text", "title"] // Kích hoạt markdown cho title và text
-                }
+              blocks: [
+                  {
+                    type: "header",
+                    text: {
+                        type: "plain_text",
+                        text: title
+                    }
+                  },
+                  {
+                    type: "section",
+                    text: {
+                        type: "mrkdwn",
+                        text: message
+                    }
+                  }
               ]
+              // attachments: [
+              //   {
+              //     color: "#36a64f",
+              //     title: title,  // Tiêu đề với định dạng đậm
+              //     text: message, // "_Test push message._\n• Dòng thứ nhất\n• Dòng thứ hai",
+              //     mrkdwn_in: ["text", "title"] // Kích hoạt markdown cho title và text
+              //   }
+              // ]
               // text: message
             }
           });
