@@ -295,8 +295,8 @@
           });
         }
         catch (ex) {
-          console.error('Error:', error);
-          document.getElementById("result").innerText = 'Error: ' + error;
+          console.error('Error:', ex);
+          document.getElementById("result").innerText = 'Error: ' + ex;
         }
         finally {
           sending = false;
