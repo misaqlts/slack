@@ -177,6 +177,13 @@
     </form>
     <script>
       function noop(event) {event.preventDefault();};
+      function toBinaryBase64(string) {
+        const codeUnits = new Uint16Array(string.length);
+        for (let i = 0; i < codeUnits.length; i++) {
+          codeUnits[i] = string.charCodeAt(i);
+        }
+        return btoa(String.fromCharCode(...new Uint8Array(codeUnits.buffer)));
+      }
       function getAllWebhookURL() {
         try {
           const jsonData = localStorage.getItem(window.__cacheKey);
@@ -278,7 +285,7 @@
               }
             });
           const version = new Date().getTime();
-          fetch(`${window.__proxyUrl}?v=${version}&data=${btoa(data)}`)
+          fetch(`${window.__proxyUrl}?v=${version}&data=${toBinaryBase64(data)}`)
           .then(response => {
               if (!response.ok) {
                   throw new Error('Failed to send message: ' + response);
