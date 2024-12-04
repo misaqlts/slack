@@ -231,67 +231,76 @@
         if (sending) {
           return;
         }
-        document.forms.myForm.classList.add('submitted');
-        if (!document.forms.myForm.checkValidity()) {
-          return;
-        }
-        const webhookURL = document.getElementById("webhookURL").value;
-        const title = document.getElementById("title").value;
-        const message = document.getElementById("message").value;
-        const webhookChannel = document.getElementById("webhookChannel").value;
-        if (!webhookURL || !message || !webhookChannel || !title) {
-          alert("Vui lòng nhập channel, webhook URL, title và message");
-          return;
-        }
-        document.getElementById("result").innerText = "Đang gửi...";
-        sending = true;
-        const data = JSON.stringify({
-            url: webhookURL,
-            payload: {
-              channel: webhookChannel,
-              blocks: [
-                  {
-                    type: "header",
-                    text: {
-                        type: "plain_text",
-                        text: title
+        try {
+          document.forms.myForm.classList.add('submitted');
+          if (!document.forms.myForm.checkValidity()) {
+            return;
+          }
+          const webhookURL = document.getElementById("webhookURL").value;
+          const title = document.getElementById("title").value;
+          const message = document.getElementById("message").value;
+          const webhookChannel = document.getElementById("webhookChannel").value;
+          if (!webhookURL || !message || !webhookChannel || !title) {
+            alert("Vui lòng nhập channel, webhook URL, title và message");
+            return;
+          }
+          document.getElementById("result").innerText = "Đang gửi...";
+          sending = true;
+          const data = JSON.stringify({
+              url: webhookURL,
+              payload: {
+                channel: webhookChannel,
+                blocks: [
+                    {
+                      type: "header",
+                      text: {
+                          type: "plain_text",
+                          text: title
+                      }
+                    },
+                    {
+                      type: "section",
+                      text: {
+                          type: "mrkdwn",
+                          text: message
+                      }
                     }
-                  },
-                  {
-                    type: "section",
-                    text: {
-                        type: "mrkdwn",
-                        text: message
-                    }
-                  }
-              ]
-              // attachments: [
-              //   {
-              //     color: "#36a64f",
-              //     title: title,  // Tiêu đề với định dạng đậm
-              //     text: message, // "_Test push message._\n• Dòng thứ nhất\n• Dòng thứ hai",
-              //     mrkdwn_in: ["text", "title"] // Kích hoạt markdown cho title và text
-              //   }
-              // ]
-              // text: message
-            }
+                ]
+                // attachments: [
+                //   {
+                //     color: "#36a64f",
+                //     title: title,  // Tiêu đề với định dạng đậm
+                //     text: message, // "_Test push message._\n• Dòng thứ nhất\n• Dòng thứ hai",
+                //     mrkdwn_in: ["text", "title"] // Kích hoạt markdown cho title và text
+                //   }
+                // ]
+                // text: message
+              }
+            });
+          const version = new Date().getTime();
+          fetch(`${window.__proxyUrl}?v=${version}&data=${btoa(data)}`)
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error('Failed to send message: ' + response);
+              }
+              console.log('Message sent successfully');
+              document.getElementById("result").innerText = 'Message sent successfully'
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              document.getElementById("result").innerText = 'Error: ' + error;
+          })
+          .finally(() => {
+            sending = false;
           });
-        const version = new Date().getTime();
-        fetch(`${window.__proxyUrl}?v=${version}&data=${btoa(data)}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to send message: ' + response);
-            }
-            console.log('Message sent successfully');
-            document.getElementById("result").innerText = 'Message sent successfully'
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            document.getElementById("result").innerText = 'Error: ' + error;
-        })
-        .finally(() => {
+        }
+        catch (ex) {
+          console.error('Error:', error);
+          document.getElementById("result").innerText = 'Error: ' + error;
+        }
+        finally {
           sending = false;
-        });
+        }
       }
       (function () {
         window.__proxyUrl = 'https://script.google.com/macros/s/AKfycbxEsp0diTUf3TH_h7lOMuYsuEqg1GHj4wzdbhecih58lRhh4CUD584fHYznvBDjwiEr/exec';
